@@ -54,3 +54,28 @@ jobs:
           path: |
             MCLiga.exe
             MCLiga.exe.sha256
+
+  release:
+    # Публикуется только при отправке тега вида v0.1.0. Файл тот же, что собрала задача windows.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: MCLiga-windows
+
+      - name: Тег должен совпадать с файлом VERSION
+        run: test "${GITHUB_REF_NAME}" = "v$(tr -d '[:space:]' < VERSION)"
+
+      - name: Создать релиз (пробная версия, без подписи)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" MCLiga.exe MCLiga.exe.sha256 \
+            --prerelease --verify-tag --title "MCLiga Launcher ${GITHUB_REF_NAME#v} (пробная версия)" \
+            --notes "Пробная версия, файл пока не подписан: Windows может показать предупреждение SmartScreen. Сборка воспроизводимая: контрольную сумму SHA-256 из MCLiga.exe.sha256 можно сравнить с шагом «Контрольная сумма» в журнале сборки."
