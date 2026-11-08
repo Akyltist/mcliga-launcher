@@ -37,11 +37,12 @@ Free code signing provided by [SignPath.io](https://signpath.io), certificate by
 
 ## Сборка
 
-Нужен Go 1.27.3 (версия, которой собираются релизы) и Windows. Параметры `CGO_ENABLED=0` и `-buildvcs=false` важны: с ними результат совпадает с автосборкой GitHub.
+Нужен Go 1.27.3 (версия, которой собираются релизы) и Windows. Шаг `go run ./tools/mkres` создаёт свойства файла (название, версия из файла `VERSION`) и манифест. Параметры `CGO_ENABLED=0` и `-buildvcs=false` важны: с ними результат совпадает с автосборкой GitHub.
 
 ```
 go vet -tags gui .
 set CGO_ENABLED=0
+go run ./tools/mkres
 go build -tags gui -trimpath -buildvcs=false -ldflags "-s -w -H windowsgui" -o MCLiga.exe .
 ```
 
