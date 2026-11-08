@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCLiga</title>
+<style>
+  :root { --bg:#07080d; --panel:#0e1018; --ink:#eceaf7; --muted:#9b99b4; --line:rgba(255,255,255,.09); --teal:#2de2c8; --violet:#a78bfa; --wine:#d4316b; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.45 "Segoe UI", system-ui, sans-serif; overflow: hidden; user-select: none; }
+  .aurora { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+  .aurora i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .85; }
+  .aurora i:nth-child(1) { width: 380px; height: 380px; left: -140px; top: -140px; background: radial-gradient(circle,#19c9b4,transparent 68%); animation: a1 18s ease-in-out infinite alternate; }
+  .aurora i:nth-child(2) { width: 420px; height: 420px; right: -160px; top: 60px; background: radial-gradient(circle,#7c5cf0,transparent 68%); animation: a2 22s ease-in-out infinite alternate; }
+  .aurora i:nth-child(3) { width: 380px; height: 380px; left: 20px; bottom: -200px; background: radial-gradient(circle,#b01550,transparent 68%); animation: a3 20s ease-in-out infinite alternate; }
+  @keyframes a1 { to { transform: translate(90px,70px); } }
+  @keyframes a2 { to { transform: translate(-80px,100px); } }
+  @keyframes a3 { to { transform: translate(110px,-60px); } }
+  main { position: relative; z-index: 1; height: 100%; padding: 26px 26px 18px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -.02em; }
+  h1 span { background: linear-gradient(100deg,var(--teal),var(--violet) 40%,var(--wine) 75%,var(--teal)); background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: slide 9s linear infinite; }
+  @keyframes slide { to { background-position: -220% 0; } }
+  .sub { color: var(--muted); margin-top: 2px; }
+  .card { background: rgba(14,16,24,.72); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; backdrop-filter: blur(10px); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 8px; }
+  .dot.on { background: var(--teal); box-shadow: 0 0 0 0 rgba(45,226,200,.6); animation: pulse 2s infinite; }
+  .dot.off { background: var(--wine); }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 9px rgba(45,226,200,0); } 100% { box-shadow: 0 0 0 0 rgba(45,226,200,0); } }
+  .stat { text-align: right; } .stat b { font-size: 20px; } .stat small { display: block; color: var(--muted); }
+  label { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+  input { width: 100%; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; color: var(--ink); font: inherit; font-size: 18px; outline: none; user-select: text; }
+  input:focus { border-color: var(--violet); }
+  button.ghost { flex-shrink: 0; background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  button.ghost:hover:not(:disabled) { border-color: var(--violet); }
+  button.ghost:disabled { opacity: .5; cursor: default; }
+  button.play { width: 100%; border: 0; border-radius: 14px; padding: 15px; font: inherit; font-size: 18px; font-weight: 800; color: #07080d; cursor: pointer;
+    background: linear-gradient(100deg,var(--teal),var(--violet),var(--teal)); background-size: 200% 100%; transition: background-position .5s, transform .15s; }
+  button.play:hover:not(:disabled) { background-position: 100% 0; transform: translateY(-1px); }
+  button.play:disabled { opacity: .55; cursor: default; }
+  .msg { min-height: 20px; font-size: 13px; color: var(--muted); }
+  .msg.err { color: #ff7aa6; } .msg.ok { color: var(--teal); }
+  .bar { height: 8px; border-radius: 8px; background: rgba(255,255,255,.08); overflow: hidden; display: none; }
+  .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg,var(--teal),var(--violet)); transition: width .25s; }
+  footer { margin-top: auto; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; font-size: 13px; }
+  footer a { color: var(--muted); cursor: pointer; text-decoration: none; } footer a:hover { color: var(--ink); }
+  .ver { text-align: center; color: var(--muted); font-size: 12px; opacity: .7; }
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div>
+<main>
+  <div>
+    <h1>MC<span>Liga</span></h1>
+    <div class="sub">Строительный сервер Minecraft</div>
+  </div>
+
+  <div class="card row">
+    <div><span class="dot" id="dot"></span><span id="state">Проверяю сервер…</span></div>
+    <div class="stat"><b id="players">–</b><small>игроков онлайн</small></div>
+    <div class="stat"><b id="ping">–</b><small>пинг, мс</small></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="align-items:flex-start">
+      <div style="min-width:0">
+        <label style="margin:0">Игра</label>
+        <div style="font-size:17px;font-weight:700"><span id="gver">Minecraft …</span></div>
+        <div class="msg" id="inst" style="min-height:0;margin-top:2px">Проверяю…</div>
+        <div class="msg" id="dir" style="min-height:0;word-break:break-all;margin-top:2px"></div>
+      </div>
+      <button class="ghost" id="chdir">Изменить папку</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <label for="nick">Игровой ник</label>
+    <input id="nick" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Например, Steve_2026">
+    <p class="msg" id="nickMsg">Латинские буквы, цифры и «_», от 3 до 16 знаков.</p>
+    <button class="play" id="play">Играть</button>
+  </div>
+
+  <div class="card" id="progressCard" style="display:none">
+    <div class="msg" id="stage" style="margin-bottom:8px">Подготовка…</div>
+    <div class="bar" id="bar"><i id="barFill"></i></div>
+  </div>
+  <div class="msg" id="msg"></div>
+
+  <footer>
+    <a onclick="goOpen('https://mcliga.ru/play.html')">Как попасть на сервер</a>
+    <a onclick="goOpen('https://mcliga.ru/rules.html')">Правила</a>
+    <a onclick="goOpen('https://mcliga.ru/parents.html')">Родителям</a>
+    <a onclick="goOpen('https://max.ru/se14948519_bot')">Бот в MAX</a>
+  </footer>
+  <div class="ver" id="ver"></div>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  let playing = false;
+  let ver = '1.21.11';
+  const fmtSize = mb => mb >= 1024 ? (mb / 1024).toFixed(1) + ' ГБ' : mb + ' МБ';
+  function setInstall(d) {
+    $('gver').textContent = 'Minecraft ' + d.version;
+    $('inst').textContent = d.installed ? 'Установлена, занимает ' + fmtSize(d.sizeMB) : 'Не установлена: при первом запуске скачается около 500 МБ';
+    $('inst').className = 'msg ' + (d.installed ? 'ok' : '');
+    $('dir').textContent = d.dir;
+  }
+
+  window.onGo = function (ev, data) {
+    if (ev === 'status') {
+      if (data.version && data.version !== ver) { ver = data.version; goInstall(ver); }
+      $('dot').className = 'dot ' + (data.up ? 'on' : 'off');
+      $('state').textContent = data.up ? 'Сервер в сети' : 'Сервер сейчас недоступен';
+      $('players').textContent = data.up ? data.players + ' / ' + data.max : '–';
+      $('ping').textContent = data.ping >= 0 ? data.ping : '–';
+    } else if (ev === 'install') {
+      setInstall(data);
+    } else if (ev === 'dir') {
+      $('dir').textContent = data; goInstall(ver);
+    } else if (ev === 'stage') {
+      $('stage').textContent = data;
+    } else if (ev === 'progress') {
+      $('bar').style.display = 'block';
+      $('stage').textContent = data.stage + ': ' + data.done + ' из ' + data.total;
+      $('barFill').style.width = Math.round(data.done / Math.max(1, data.total) * 100) + '%';
+    } else if (ev === 'error') {
+      finish(data, 'err');
+    } else if (ev === 'started') {
+      finish(data, 'ok');
+    }
+  };
+
+  function finish(text, kind) {
+    playing = false;
+    $('play').disabled = false; $('chdir').disabled = false;
+    $('progressCard').style.display = 'none';
+    goInstall(ver);
+    $('msg').className = 'msg ' + kind;
+    $('msg').textContent = text;
+  }
+
+  $('play').addEventListener('click', async () => {
+    if (playing) return;
+    $('msg').textContent = ''; $('nickMsg').className = 'msg';
+    const err = await goPlay($('nick').value, ver);
+    if (err) { $('nickMsg').className = 'msg err'; $('nickMsg').textContent = err; return; }
+    playing = true;
+    $('play').disabled = true; $('chdir').disabled = true;
+    $('progressCard').style.display = 'block';
+    $('bar').style.display = 'none';
+    $('stage').textContent = 'Подготовка (первый запуск может занять несколько минут)…';
+  });
+  $('chdir').addEventListener('click', () => { if (!playing) goChooseDir(); });
+  $('nick').addEventListener('keydown', e => { if (e.key === 'Enter') $('play').click(); });
+
+  (async () => {
+    const i = await goInit();
+    $('nick').value = i.nick || '';
+    ver = i.version; $('ver').textContent = 'Лаунчер ' + i.launcher;
+    setInstall({ version: ver, installed: false, sizeMB: 0, dir: i.dir }); goInstall(ver);
+    goStatus();
+    setInterval(goStatus, 30000);
+  })();
+</script>
+</body>
+</html>

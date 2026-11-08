@@ -1,0 +1,7 @@
+*.exe
+*.syso
+*.part
+run/
+tools/
+config.json
+error.txt
