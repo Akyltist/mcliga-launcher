@@ -22,10 +22,19 @@ jobs:
           cache: true
 
       - name: Проверка кода
+        env:
+          CGO_ENABLED: "0"
         run: go vet -tags gui .
 
+      # Параметры сборки заданы явно, чтобы результат не зависел от машины:
+      # без cgo (компилятор C на сборочной машине не участвует) и без вшитых сведений о Git.
       - name: Сборка (окно)
-        run: go build -tags gui -trimpath -ldflags "-s -w -H windowsgui" -o MCLiga.exe .
+        env:
+          CGO_ENABLED: "0"
+        run: go build -tags gui -trimpath -buildvcs=false -ldflags "-s -w -H windowsgui" -o MCLiga.exe .
+
+      - name: Параметры сборки (для проверки)
+        run: go version -m MCLiga.exe
 
       - name: Контрольная сумма
         shell: pwsh
